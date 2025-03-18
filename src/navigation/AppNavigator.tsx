@@ -14,6 +14,8 @@ import EmailScreen from '~/screens/Email/EmailScreen';
 import SettingScreen from '~/screens/Settings/SettingScreen';
 import OrderScreen from '~/screens/Order/OrderScreen';
 import RequestScreen from '~/screens/Requested/RequestScreen';
+import ScheduleScree from '~/screens/Schedule/ScheduleScree';
+import InfoScreen from '~/screens/ClubInfo/InfoScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -39,7 +41,38 @@ const FoodStack = () => {
     </Stack.Navigator>
   );
 };
-
+const BusStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="BusScreen"
+        component={BusScreen}
+        options={{ headerShown: false }} // Hide header for FoodScreen
+      />
+      <Stack.Screen
+        name="ScheduleScreen"
+        component={ScheduleScree}
+        options={{ headerShown: false }} // Hide header for OrderScreen
+      />
+    </Stack.Navigator>
+  );
+};
+const ClubStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="ClubScreen"
+        component={ClubScreen}
+        options={{ headerShown: false }} // Hide header for FoodScreen
+      />
+      <Stack.Screen
+        name="ClubInfo"
+        component={InfoScreen}
+        options={{ headerShown: false }} // Hide header for OrderScreen
+      />
+    </Stack.Navigator>
+  );
+};
 const AppTabs = () => {
   return (
     <Tab.Navigator
@@ -59,10 +92,10 @@ const AppTabs = () => {
         },
       })}>
       <Tab.Screen name="খাবার" component={FoodStack} options={{ headerShown: false }} />
-      <Tab.Screen name="বাস" component={BusScreen} />
-      <Tab.Screen name="ক্লাব" component={ClubScreen} />
-      <Tab.Screen name="ফ্যাকালটি" component={FacultyScreen} />
-      <Tab.Screen name="ইমেইল" component={EmailScreen} />
+      <Tab.Screen name="বাস" component={BusStack} options={{ headerShown: false }} />
+      <Tab.Screen name="ক্লাব" component={ClubStack} options={{ headerShown: false }} />
+      <Tab.Screen name="ফ্যাকালটি" component={FacultyScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="ইমেইল" component={EmailScreen} options={{ headerShown: false }} />
       <Tab.Screen name="সেটিংস" component={SettingScreen} />
     </Tab.Navigator>
   );

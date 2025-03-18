@@ -117,7 +117,9 @@ export default function MealPage() {
                 buttonColor="red" // Changes to flat button style
                 labelStyle={{ color: 'white', fontSize: 14 }} // Text color and font size
                 onPress={() => navigation.navigate('OrderScreen')}
-                className="rounded-none">
+                className="rounded-none"
+                style={{ borderRadius: 5 }} // Remove rounded corners
+              >
                 Order
               </Button>
               <Button
@@ -125,7 +127,9 @@ export default function MealPage() {
                 buttonColor="green" // Changes to flat button style
                 labelStyle={{ color: 'white', fontSize: 14 }} // Text color and font size
                 onPress={() => navigation.navigate('OrderScreen')}
-                className="rounded-none">
+                className="rounded-none"
+                style={{ borderRadius: 5 }} // Remove rounded corners
+              >
                 Preorder
               </Button>
             </View>
@@ -134,7 +138,7 @@ export default function MealPage() {
       </View>
 
       {/* New Card with Background [#E54981] */}
-      <View className="mx-4 mt-4 rounded-lg" style={{ backgroundColor: '#E54981' }}>
+      <View className="mx-4 mb-4 mt-4 rounded-lg" style={{ backgroundColor: '#E54981' }}>
         <View className="p-4">
           <Text className="text-center text-xl font-bold text-white">
             আপনার অনুরোধকৃত আইটেম দেখতে চান?
