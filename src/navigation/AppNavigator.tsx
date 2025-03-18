@@ -2,20 +2,68 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import SignInScreen from '../screens/SignIn/SignInScreen';
 import SignUpScreen from '../screens/SignUp/SignUpScreen';
-import HomeScreen from '../screens/Home/HomeScreen';
-import ViewScreen from '../screens/View/ViewScreen';
 
+import FoodScreen from '~/screens/Food/FoodScreen';
+import BusScreen from '~/screens/Bus/BusScreen';
+import ClubScreen from '~/screens/Club/ClubScreen';
+import FacultyScreen from '~/screens/Faculty/FacultyScreen';
+import EmailScreen from '~/screens/Email/EmailScreen';
+import SettingScreen from '~/screens/Settings/SettingScreen';
+import OrderScreen from '~/screens/Order/OrderScreen';
+import RequestScreen from '~/screens/Requested/RequestScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// Bottom Tab Navigator
+// Stack Navigator for FoodScreen and OrderScreen
+const FoodStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="FoodScreen"
+        component={FoodScreen}
+        options={{ headerShown: false }} // Hide header for FoodScreen
+      />
+      <Stack.Screen
+        name="OrderScreen"
+        component={OrderScreen}
+        options={{ headerShown: false }} // Hide header for OrderScreen
+      />
+      <Stack.Screen
+        name="ReqScreen"
+        component={RequestScreen}
+        options={{ headerShown: false }} // Hide header for OrderScreen
+      />
+    </Stack.Navigator>
+  );
+};
+
 const AppTabs = () => {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="View" component={ViewScreen} />
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarActiveTintColor: '#E54981', // Set the active icon color
+        tabBarInactiveTintColor: 'gray', // Optional: Set inactive icon color
+        tabBarIcon: ({ color, size }) => {
+          let iconName: string = 'help-circle';
+          if (route.name === 'খাবার') iconName = 'food';
+          else if (route.name === 'বাস') iconName = 'bus';
+          else if (route.name === 'ক্লাব') iconName = 'account-group';
+          else if (route.name === 'ফ্যাকালটি') iconName = 'school';
+          else if (route.name === 'ইমেইল') iconName = 'email';
+          else if (route.name === 'সেটিংস') iconName = 'cog';
+
+          return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+        },
+      })}>
+      <Tab.Screen name="খাবার" component={FoodStack} options={{ headerShown: false }} />
+      <Tab.Screen name="বাস" component={BusScreen} />
+      <Tab.Screen name="ক্লাব" component={ClubScreen} />
+      <Tab.Screen name="ফ্যাকালটি" component={FacultyScreen} />
+      <Tab.Screen name="ইমেইল" component={EmailScreen} />
+      <Tab.Screen name="সেটিংস" component={SettingScreen} />
     </Tab.Navigator>
   );
 };
@@ -27,7 +75,6 @@ const AppNavigator = () => {
       <Stack.Navigator initialRouteName="SignIn">
         <Stack.Screen name="SignIn" component={SignInScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
-        {/* After SignIn, show the Tab Navigator */}
         <Stack.Screen name="AppTabs" component={AppTabs} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
