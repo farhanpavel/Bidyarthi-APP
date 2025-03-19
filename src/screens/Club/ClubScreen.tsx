@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,43 +9,74 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; // For safe area handling
-import { Trophy } from 'lucide-react-native';
+import { BookOpenText, Trophy } from 'lucide-react-native'; // Updated icon
 import { useNavigation } from '@react-navigation/native';
+import { url } from 'components/url/page';
 
 const { width } = Dimensions.get('window');
 
 export default function ClubScreen() {
   const navigation = useNavigation(); // Use the useNavigation hook
+  const [clubs, setClubs] = useState([]); // State to store clubs
+  const [loading, setLoading] = useState(true); // State to handle loading
+  const [error, setError] = useState(null); // State to handle errors
 
-  const clubs = [
-    {
-      id: '1',
-      name: 'Programming Club',
-      description: 'Learn and grow together',
-      club_url:
-        'https://media.istockphoto.com/id/1480105317/photo/close-up-image-of-basketball-ball-over-floor-in-the-gym-orange-basketball-ball-on-wooden.jpg?s=612x612&w=0&k=20&c=KYFwwRySq_M3ej2KkHQuZcWvR6BaqwuOIkuZGadK-YM=', // Replace with your image URL
-    },
-    {
-      id: '2',
-      name: 'Sports Club',
-      description: 'Stay fit and have fun',
-      club_url:
-        'https://cdn.britannica.com/55/235355-050-2CE9732E/Usain-Bolt-Jamaica-gold-medal-breaking-world-record-200m-Beijing-Summer-Olympics-August-20-2008.jpg', // Replace with your image URL
-    },
-    {
-      id: '3',
-      name: 'Music Club',
-      description: 'Explore the world of music',
-      club_url:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5JDVeSMirXBLqzarX09Lf34j3FrXJX8EG4w&s', // Replace with your image URL
-    },
-    // Add more dummy data as needed
-  ];
+  // Fetch clubs from the backend
+  useEffect(() => {
+    const fetchClubs = async () => {
+      try {
+        const response = await fetch(`${url}/api/club`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch clubs');
+        }
+        const data = await response.json();
+        setClubs(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClubs();
+  }, []);
+
+  // Display loading state
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Display error state
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Error: {error}</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Display no clubs found state
+  if (clubs.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>No clubs found</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         {/* Header */}
+        <View style={styles.header}>
+          <BookOpenText size={24} color="#E54981" />
+          <Text style={styles.headerText}>ক্লাব</Text>
+        </View>
+        <Text style={styles.subHeader}>সৃজনশীল ও সহশিক্ষা কার্যক্রমের তথ্য</Text>
 
         {/* Club Cards */}
         <View style={styles.grid}>
@@ -63,7 +94,7 @@ export default function ClubScreen() {
               {/* Details Button */}
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => navigation.navigate('ClubInfo')}>
+                onPress={() => navigation.navigate('ClubInfo', { id: club.id })}>
                 <Text style={styles.buttonText}>বিস্তারিত দেখুন</Text>
               </TouchableOpacity>
             </View>
@@ -83,12 +114,18 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
     marginLeft: 8,
+    color: '#E54981',
+  },
+  subHeader: {
+    fontSize: 14,
+    color: '#4a4a4a',
+    marginBottom: 16,
   },
   grid: {
     flexDirection: 'column',
@@ -96,7 +133,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   card: {
-    width: '100%', // Two cards per row with some spacing
+    width: '100%', // Full width for each card
     backgroundColor: '#fff',
     borderRadius: 8,
     marginBottom: 16,

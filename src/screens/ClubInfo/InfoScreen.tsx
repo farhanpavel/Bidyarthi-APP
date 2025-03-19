@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,47 +7,135 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context'; // For safe area handling
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars'; // For calendar
-import { ThumbsUp, CalendarCheck } from 'lucide-react-native';
+import { ThumbsUp, CalendarCheck, Trophy } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRoute } from '@react-navigation/native';
+import { url } from 'components/url/page';
 
 const { width, height } = Dimensions.get('window');
 
-export default function InfoScreen() {
-  // Dummy data
-  const [clubData, setClubData] = useState({
-    club: {
-      name: 'Programming Club',
-      club_url:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYw_6XHK9xPkx-xoUunFjugcMbwVCYTVRHcg&s', // Replace with your image URL
-      events: [
-        {
-          id: '1',
-          name: 'Workshop on React Native',
-          description: 'Learn React Native from scratch',
-          date: '2023-10-15',
-          url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYw_6XHK9xPkx-xoUunFjugcMbwVCYTVRHcg&s', // Replace with your image URL
-        },
-        {
-          id: '2',
-          name: 'Coding Competition',
-          description: 'Participate and win exciting prizes',
-          date: '2023-10-20',
-          url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYw_6XHK9xPkx-xoUunFjugcMbwVCYTVRHcg&s', // Replace with your image URL
-        },
-        // Add more events as needed
-      ],
-    },
-  });
+export default function InfoScreen({ navigation }) {
+  const route = useRoute();
+  const { id } = route.params;
 
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Default to today's date
-  const [disabledEvents, setDisabledEvents] = useState(new Set()); // Track disabled events
+  const [clubData, setClubData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [disabledEvents, setDisabledEvents] = useState(new Set());
+
+  // Fetch club data from the backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${url}/api/club/event/data/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          setClubData(data[0]);
+        } else {
+          setClubData(null);
+        }
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchData();
+  }, [id]);
+
+  // Check if an event is disabled (already assigned)
+  const checkEventFlag = async (eventId) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(`${url}/api/assign/${eventId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch flag status');
+      }
+
+      const data = await response.json();
+      return data?.flag === true;
+    } catch (error) {
+      console.error('Error fetching flag:', error);
+      return false;
+    }
+  };
+
+  // Fetch flags for all events
+  useEffect(() => {
+    const fetchFlags = async () => {
+      if (clubData?.club?.events) {
+        const disabled = new Set();
+        for (const event of clubData.club.events) {
+          const isDisabled = await checkEventFlag(event.id);
+          if (isDisabled) {
+            disabled.add(event.id);
+          }
+        }
+        setDisabledEvents(disabled);
+      }
+    };
+
+    fetchFlags();
+  }, [clubData]);
 
   // Handle button click for "Interested" or "Going"
-  const handleButtonClick = (eventId, status) => {
-    console.log(`Event ID: ${eventId}, Status: ${status}`);
-    setDisabledEvents((prev) => new Set(prev.add(eventId))); // Disable the button
+  const handleButtonClick = async (eventId, status) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(`${url}/api/assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+        body: JSON.stringify({
+          status,
+          eventId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to assign event');
+      }
+
+      Alert.alert('Success', 'Successfully assigned!');
+      setDisabledEvents((prev) => new Set(prev.add(eventId)));
+    } catch (error) {
+      console.error('Error assigning event:', error);
+      Alert.alert('Error', 'Failed to assign event');
+    }
   };
 
   // Format date to display in the event card
@@ -58,9 +146,43 @@ export default function InfoScreen() {
 
   // Marked dates for the calendar
   const markedDates = {};
-  clubData.club.events.forEach((event) => {
-    markedDates[event.date] = { marked: true, dotColor: '#7848F4' };
-  });
+  if (clubData?.club?.events) {
+    clubData.club.events.forEach((event) => {
+      markedDates[event.date] = {
+        marked: true, // Add a dot marker
+        dotColor: '#7848F4', // Purple dot color
+        selected: event.date === selectedDate, // Highlight selected date
+        selectedColor: '#7848F4', // Purple highlight color
+      };
+    });
+  }
+
+  // Display loading state
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Display error state
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Error: {error}</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Display no data found state
+  if (!clubData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>No data found</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -78,15 +200,13 @@ export default function InfoScreen() {
           <Calendar
             current={selectedDate}
             onDayPress={(day) => setSelectedDate(day.dateString)}
-            markedDates={{
-              ...markedDates,
-              [selectedDate]: { selected: true, selectedColor: '#7848F4' },
-            }}
+            markedDates={markedDates} // Pass marked dates with dots and selected date
             theme={{
               calendarBackground: '#fff',
-              selectedDayBackgroundColor: '#7848F4',
-              todayTextColor: '#7848F4',
-              arrowColor: '#7848F4',
+              selectedDayBackgroundColor: '#7848F4', // Purple highlight for selected date
+              todayTextColor: '#7848F4', // Purple color for today's date
+              arrowColor: '#7848F4', // Purple color for navigation arrows
+              dotColor: '#7848F4', // Purple color for event dots
             }}
           />
         </View>
@@ -113,14 +233,22 @@ export default function InfoScreen() {
               {/* Buttons */}
               <View style={styles.eventButtons}>
                 <TouchableOpacity
-                  style={[styles.button, styles.interestedButton]}
+                  style={[
+                    styles.button,
+                    styles.interestedButton,
+                    disabledEvents.has(event.id) && styles.disabledInterestedButton,
+                  ]}
                   onPress={() => handleButtonClick(event.id, 'interested')}
                   disabled={disabledEvents.has(event.id)}>
                   <ThumbsUp size={16} color="#fff" />
                   <Text style={styles.buttonText}>Interested</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.goingButton]}
+                  style={[
+                    styles.button,
+                    styles.goingButton,
+                    disabledEvents.has(event.id) && styles.disabledGoingButton,
+                  ]}
                   onPress={() => handleButtonClick(event.id, 'going')}
                   disabled={disabledEvents.has(event.id)}>
                   <CalendarCheck size={16} color="#fff" />
@@ -164,13 +292,13 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   calendarContainer: {
+    margin: 16,
     backgroundColor: '#fff',
     borderRadius: 8,
-    margin: 16,
     elevation: 2,
   },
   eventsContainer: {
-    padding: 16,
+    margin: 16,
   },
   eventCard: {
     backgroundColor: '#fff',
@@ -197,9 +325,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   eventDay: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
   },
   eventInfo: {
     flex: 1,
@@ -207,37 +334,52 @@ const styles = StyleSheet.create({
   eventName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
   },
   eventDescription: {
     fontSize: 14,
     color: '#6b7280',
-    marginTop: 4,
   },
+
+  // Existing styles
   eventButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    justifyContent: 'center',
+    marginTop: 16,
+    padding: 4,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    paddingVertical: 8,
     borderRadius: 8,
-  },
-  interestedButton: {
-    backgroundColor: '#10B981',
-  },
-  goingButton: {
-    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
   },
   buttonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#fff',
     marginLeft: 8,
+    color: '#fff',
+    fontSize: 16,
+  },
+  // Button styles for 'Interested' and 'Going' states
+  interestedButton: {
+    backgroundColor: '#34D399', // Green color for 'Interested'
+  },
+  goingButton: {
+    backgroundColor: '#60A5FA', // Blue color for 'Going'
+  },
+  // Disabled button styles
+  disabledButton: {
+    backgroundColor: '#D1D5DB', // Light gray color when disabled
+    opacity: 0.6, // Make the button appear faded
+  },
+  // Disabled state for the 'Interested' button
+  disabledInterestedButton: {
+    backgroundColor: '#D1E7D3', // Light greenish gray for disabled 'Interested'
+    opacity: 0.6,
+  },
+  // Disabled state for the 'Going' button
+  disabledGoingButton: {
+    backgroundColor: '#B3CDE0', // Light bluish gray for disabled 'Going'
+    opacity: 0.6,
   },
 });

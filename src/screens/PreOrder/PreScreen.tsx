@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, Dimensions, Linking } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { Button, Card } from 'react-native-paper';
 import { HandPlatter, Minus, Plus, ShoppingCart, Trash2, DollarSign } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; // For safe area handling
-import AsyncStorage from '@react-native-async-storage/async-storage'; // For token storage
 import { useRoute } from '@react-navigation/native'; // To get route params
+import AsyncStorage from '@react-native-async-storage/async-storage'; // For token storage
 import { url } from 'components/url/page';
 
 const { width, height } = Dimensions.get('window');
 
-export default function OrderScreen({ navigation }) {
+export default function PreOrderScreen({ navigation }) {
   const route = useRoute();
   const { id } = route.params; // Get the meal ID from route params
 
@@ -22,7 +22,6 @@ export default function OrderScreen({ navigation }) {
   useEffect(() => {
     const fetchMeal = async () => {
       try {
-        // Get token from AsyncStorage
         const token = await AsyncStorage.getItem('token');
         if (!token) {
           throw new Error('No token found');
@@ -93,7 +92,7 @@ export default function OrderScreen({ navigation }) {
   const deliveryFee = 2.99;
   const tax = calculateSubtotal() * 0.08;
 
-  // Handle payment
+  // Handle preorder payment
   const handlePay = async () => {
     const totalAmount = calculateSubtotal() + deliveryFee + tax;
 
@@ -101,7 +100,6 @@ export default function OrderScreen({ navigation }) {
       amount: totalAmount,
       menuId: id,
       quantity: cartItems[0].quantity,
-      paid: false,
     };
 
     try {
@@ -110,7 +108,7 @@ export default function OrderScreen({ navigation }) {
         throw new Error('No token found');
       }
 
-      const response = await fetch(`${url}/api/ssl/init`, {
+      const response = await fetch(`${url}/api/meal`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,15 +119,15 @@ export default function OrderScreen({ navigation }) {
 
       const result = await response.json();
       if (response.ok) {
-        // Navigate to PaymentScreen with the SSLCommerz URL
-        navigation.navigate('PaymentScreen', { url: result.url });
+        navigation.goBack(); // Navigate back after successful preorder
       } else {
-        console.error('Payment initiation failed:', result.error);
+        console.error('Preorder failed:', result.error);
       }
     } catch (error) {
-      console.error('Error during payment:', error);
+      console.error('Error during preorder:', error);
     }
   };
+
   // Display loading state
   if (loading) {
     return (
@@ -459,7 +457,6 @@ const styles = StyleSheet.create({
     bottom: -10,
     left: 0,
     right: 0,
-
     alignItems: 'center',
   },
   floatingButtons: {

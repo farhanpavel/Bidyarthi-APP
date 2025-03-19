@@ -4,7 +4,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import SignInScreen from '../screens/SignIn/SignInScreen';
-import SignUpScreen from '../screens/SignUp/SignUpScreen';
 
 import FoodScreen from '~/screens/Food/FoodScreen';
 import BusScreen from '~/screens/Bus/BusScreen';
@@ -16,6 +15,9 @@ import OrderScreen from '~/screens/Order/OrderScreen';
 import RequestScreen from '~/screens/Requested/RequestScreen';
 import ScheduleScree from '~/screens/Schedule/ScheduleScree';
 import InfoScreen from '~/screens/ClubInfo/InfoScreen';
+import SignupScreen from '../screens/SignUp/SignUpScreen';
+import PaymentScreen from '~/screens/Payment/PaymentScreen';
+import PreOrderScreen from '~/screens/PreOrder/PreScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -37,6 +39,16 @@ const FoodStack = () => {
         name="ReqScreen"
         component={RequestScreen}
         options={{ headerShown: false }} // Hide header for OrderScreen
+      />
+      <Stack.Screen
+        name="PaymentScreen"
+        component={PaymentScreen}
+        options={{ headerShown: false }}
+      />
+        <Stack.Screen
+        name="PreOrderScreen"
+        component={PreOrderScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
@@ -107,7 +119,7 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="SignIn">
         <Stack.Screen name="SignIn" component={SignInScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUp" component={SignupScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AppTabs" component={AppTabs} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>

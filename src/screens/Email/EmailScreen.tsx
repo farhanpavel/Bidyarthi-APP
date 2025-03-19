@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Appbar, Card, Avatar, IconButton } from 'react-native-paper';
 import { Mail, Send, X } from 'lucide-react-native'; // Assuming you have lucide-react-native installed
+import AsyncStorage from '@react-native-async-storage/async-storage'; // For storing token
+import { url } from 'components/url/page';
 
 export default function EmailScreen() {
   const [showCompose, setShowCompose] = useState(false);
@@ -10,37 +12,72 @@ export default function EmailScreen() {
     subject: '',
     body: '',
   });
-  const [inbox, setInbox] = useState([
-    {
-      id: 1,
-      from: { name: 'John Doe', email: 'john@example.com' },
-      subject: 'Meeting Reminder',
-      message: "Don't forget the meeting at 10 AM tomorrow.",
-    },
-    {
-      id: 2,
-      from: { name: 'Jane Smith', email: 'jane@example.com' },
-      subject: 'Project Update',
-      message: "Here's the latest update on the project.",
-    },
-  ]);
+  const [inbox, setInbox] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Fetch messages on component mount
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  // Function to fetch messages
+  const fetchMessages = async () => {
+    const token = await AsyncStorage.getItem('token');
+    try {
+      const response = await fetch(`${url}/api/mail/get`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+
+      const data = await response.json();
+      setInbox(data); // Update inbox state with fetched messages
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
   // Handle form submission
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setLoading(true);
-    setTimeout(() => {
-      const newEmail = {
-        id: inbox.length + 1,
-        from: { name: 'You', email: 'you@example.com' },
-        subject: emailData.subject,
-        message: emailData.body,
-      };
-      setInbox([newEmail, ...inbox]); // Add new email to the top of the inbox
-      setShowCompose(false); // Close the compose form
-      setEmailData({ to: '', subject: '', body: '' }); // Clear the form
+    const token = await AsyncStorage.getItem('token');
+
+    try {
+      const response = await fetch(`${url}/api/mail/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${token}`,
+        },
+        body: JSON.stringify({
+          email: emailData.to,
+          subject: emailData.subject,
+          message: emailData.body,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Email sent successfully!');
+        setShowCompose(false);
+        setEmailData({ to: '', subject: '', body: '' });
+        await fetchMessages(); // Refetch messages after sending
+      } else {
+        alert(`Failed to send email: ${result.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('An error occurred while sending the email.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -73,19 +110,19 @@ export default function EmailScreen() {
             <Card.Content>
               <TextInput
                 placeholder="ব্যক্তির ইমেইল"
-                placeholderTextColor="#9CA3AF" // Gray color for placeholder
+                placeholderTextColor="#9CA3AF"
                 value={emailData.to}
                 onChangeText={(text) => setEmailData({ ...emailData, to: text })}
                 className="mb-4 rounded-lg border border-gray-300 p-2"
-                style={{ fontSize: 16 }} // Custom font size
+                style={{ fontSize: 16 }}
               />
               <TextInput
                 placeholder="বিষয়"
-                placeholderTextColor="#9CA3AF" // Gray color for placeholder
+                placeholderTextColor="#9CA3AF"
                 value={emailData.subject}
                 onChangeText={(text) => setEmailData({ ...emailData, subject: text })}
                 className="mb-4 rounded-lg border border-gray-300 p-2"
-                style={{ fontSize: 16 }} // Custom font size
+                style={{ fontSize: 16 }}
               />
               <TextInput
                 placeholder="বার্তা"
@@ -95,7 +132,7 @@ export default function EmailScreen() {
                 multiline
                 numberOfLines={6}
                 className="mb-4 rounded-lg border border-gray-300 p-2"
-                style={{ fontSize: 16, textAlignVertical: 'top', minHeight: 120 }} // Set minHeight
+                style={{ fontSize: 16, textAlignVertical: 'top', minHeight: 120 }}
               />
             </Card.Content>
             <Card.Actions className="justify-end">

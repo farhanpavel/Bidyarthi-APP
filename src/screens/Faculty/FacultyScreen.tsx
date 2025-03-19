@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
-  Image,
   TouchableOpacity,
   TextInput,
   Alert,
@@ -13,27 +12,37 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'; // For safe area handling
 import { Calendar } from 'react-native-calendars'; // For calendar
 import { Plus, Trash2, BookOpenText } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker'; // For image upload
+import AsyncStorage from '@react-native-async-storage/async-storage'; // For token storage
+import { url } from 'components/url/page'; // Your API URL
 
 const { width, height } = Dimensions.get('window');
 
 export default function FacultyScreen() {
-  // Dummy data
-  const [schedule, setSchedule] = useState({
-    SUNDAY: 'No class',
-    MONDAY: 'Class at 10 AM',
-    TUESDAY: 'Class at 11 AM',
-    WEDNESDAY: 'Class at 12 PM',
-    THURSDAY: 'Class at 1 PM',
-    FRIDAY: 'Class at 2 PM',
-    SATURDAY: 'No class',
-  });
-
+  const [schedule, setSchedule] = useState({}); // Initialize as empty object
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Default to today's date
-  const [classOnDate, setClassOnDate] = useState(
-    schedule[new Date().toLocaleString('en-US', { weekday: 'long' }).toUpperCase()]
-  );
+  const [classOnDate, setClassOnDate] = useState('No class scheduled for this date.');
   const [todolist, setTodolist] = useState([]);
   const [newTodo, setNewTodo] = useState('');
+  const [loading, setLoading] = useState(false); // For loading state
+
+  useEffect(() => {
+    // Request media library and camera permissions
+    const requestPermissions = async () => {
+      const { status: mediaLibraryStatus } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (mediaLibraryStatus !== 'granted' || cameraStatus !== 'granted') {
+        Alert.alert(
+          'Permission Denied',
+          'You need to grant permission to access media and camera.'
+        );
+      }
+    };
+
+    requestPermissions();
+  }, []);
 
   // Handle date selection
   const handleDateClick = (date) => {
@@ -64,10 +73,99 @@ export default function FacultyScreen() {
     setTodolist(todolist.filter((todo) => todo.id !== id));
   };
 
-  // Handle file upload (dummy function)
-  const handleFileUpload = () => {
-    Alert.alert('Upload', 'Routine uploaded successfully!');
+  // Handle image upload
+  const handleFileUpload = async () => {
+    const options = {
+      mediaType: 'photo',
+      includeBase64: false,
+      maxHeight: 2000,
+      maxWidth: 2000,
+    };
+
+    ImagePicker.launchImageLibraryAsync(options).then(async (response) => {
+      if (response.cancelled) {
+        Alert.alert('Cancelled', 'Image selection was cancelled.');
+      } else if (response.error) {
+        Alert.alert('Error', 'Failed to select image.');
+      } else {
+        const imageUri = response.assets[0].uri;
+        setLoading(true);
+
+        try {
+          // Upload the image to the backend
+          const token = await AsyncStorage.getItem('token');
+          if (!token) {
+            throw new Error('No token found');
+          }
+
+          const formData = new FormData();
+          formData.append('routineImage', {
+            uri: imageUri,
+            type: 'image/jpeg',
+            name: 'routine.jpg',
+          });
+
+          const uploadResponse = await fetch(`${url}/api/routine/extract-routine`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error('Failed to upload image');
+          }
+
+          const data = await uploadResponse.json();
+
+          // Save the extracted schedule
+          const saveResponse = await fetch(`${url}/api/routine/save`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: token,
+            },
+            body: JSON.stringify({
+              userId: 'currentUserId', // Replace with actual user ID
+              schedule: data.schedule,
+            }),
+          });
+
+          if (!saveResponse.ok) {
+            throw new Error('Failed to save schedule');
+          }
+
+          // Update the schedule state
+          setSchedule(data.schedule);
+          Alert.alert('Success', 'Routine uploaded and processed successfully!');
+        } catch (error) {
+          console.error('Error uploading routine:', error);
+          Alert.alert('Error', 'Failed to upload routine. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
+
+  // Marked dates for the calendar (entire year)
+  const markedDates = {};
+  if (Object.keys(schedule).length > 0) {
+    const currentYear = new Date().getFullYear(); // Get the current year
+    const startDate = new Date(currentYear, 0, 1); // Start from January 1st of the current year
+    const endDate = new Date(currentYear, 11, 31); // End at December 31st of the current year
+
+    for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
+      const day = date.toLocaleString('en-US', { weekday: 'long' }).toUpperCase();
+      if (schedule[day] && schedule[day] !== 'No class') {
+        markedDates[date.toISOString().split('T')[0]] = {
+          marked: true,
+          dotColor: '#E54981', // Purple dot for days with classes
+        };
+      }
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -80,8 +178,10 @@ export default function FacultyScreen() {
         <Text style={styles.subHeader}>শিক্ষামূলক কার্যক্রমের তথ্য</Text>
 
         {/* Upload Button */}
-        <TouchableOpacity style={styles.uploadButton} onPress={handleFileUpload}>
-          <Text style={styles.uploadButtonText}>রুটিন আপলোড করুন</Text>
+        <TouchableOpacity style={styles.uploadButton} onPress={handleFileUpload} disabled={loading}>
+          <Text style={styles.uploadButtonText}>
+            {loading ? 'Processing...' : 'রুটিন আপলোড করুন'}
+          </Text>
         </TouchableOpacity>
 
         {/* Calendar */}
@@ -90,6 +190,7 @@ export default function FacultyScreen() {
             current={selectedDate}
             onDayPress={handleDateClick}
             markedDates={{
+              ...markedDates,
               [selectedDate]: { selected: true, selectedColor: '#E54981' },
             }}
             theme={{

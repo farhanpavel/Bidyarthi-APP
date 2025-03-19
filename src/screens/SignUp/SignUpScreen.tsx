@@ -1,15 +1,63 @@
 import React, { useState } from 'react';
-import { Image, View, Text } from 'react-native';
+import { Image, View, Text, Alert } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // For storing tokens
 import '../../../global.css';
+import { url } from 'components/url/page';
 
-const SignInScreen = ({ navigation }: any) => {
+const SignupScreen = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const navigation = useNavigation();
 
-  const handleSignIn = () => {
-    navigation.replace('AppTabs');
+  const handleSignUp = async () => {
+    setError('');
+    setPasswordMismatch(false);
+
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      setPasswordMismatch(true);
+      setError('পাসওয়ার্ড মেলেনি');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${url}/api/user/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role: 'student', // Default role
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে');
+      }
+
+      console.log('Registration successful:', data);
+
+      // Show success message and navigate to sign-in page
+      Alert.alert('সফল', 'রেজিস্ট্রেশন সফল হয়েছে', [
+        {
+          text: 'ঠিক আছে',
+          onPress: () => navigation.replace('SignIn'), // Navigate to sign-in page
+        },
+      ]);
+    } catch (err) {
+      setError(err.message || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে');
+    }
   };
 
   return (
@@ -27,13 +75,13 @@ const SignInScreen = ({ navigation }: any) => {
       </View>
 
       {/* Sign Up Form */}
-      <View className="w-full rounded-lg bg-white ">
+      <View className="w-full rounded-lg bg-white">
         <View className="flex flex-col gap-y-4">
           <View>
             <TextInput
               label="নাম"
-              value={email}
-              onChangeText={setEmail}
+              value={name}
+              onChangeText={setName}
               mode="outlined"
               className="mb-4"
               activeOutlineColor="#E54981"
@@ -56,7 +104,7 @@ const SignInScreen = ({ navigation }: any) => {
               onChangeText={setPassword}
               secureTextEntry
               mode="outlined"
-              className="mb-6"
+              className="mb-4"
               activeOutlineColor="#E54981"
             />
           </View>
@@ -73,15 +121,17 @@ const SignInScreen = ({ navigation }: any) => {
           </View>
         </View>
 
+        {/* Error Message */}
+        {error ? <Text className="mb-4 text-center text-red-500">{error}</Text> : null}
+
         {/* Create Button */}
         <View className="mt-10 flex flex-row justify-center gap-x-3">
           <View>
             <Button
               mode="contained"
-              onPress={handleSignIn}
+              onPress={handleSignUp}
               className="mb-4 w-[150px]"
-              style={{ backgroundColor: '#E54981' }} // Use the style prop to apply background color
-            >
+              style={{ backgroundColor: '#E54981' }}>
               তৈরি করুন
             </Button>
           </View>
@@ -91,4 +141,4 @@ const SignInScreen = ({ navigation }: any) => {
   );
 };
 
-export default SignInScreen;
+export default SignupScreen;

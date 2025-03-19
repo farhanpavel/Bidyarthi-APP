@@ -1,41 +1,64 @@
 import { useNavigation } from '@react-navigation/native';
-import { DollarSignIcon, Map, Users } from 'lucide-react-native';
+import { url } from 'components/url/page';
+import { DollarSign, Map, Users } from 'lucide-react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, Image, Dimensions, StyleSheet, ScrollView } from 'react-native';
-import { Avatar, Card, IconButton, Button } from 'react-native-paper';
+import { Button } from 'react-native-paper';
 import Carousel from 'react-native-snap-carousel';
-
-const data = [
-  {
-    id: '1',
-    image: require('../../../assets/meal.png'),
-    title: 'নাস্তা',
-    description: 'সকালের প্রয়োজনীয় শক্তির উৎস',
-  },
-  {
-    id: '2',
-    image: require('../../../assets/meal2.jpg'),
-    title: 'মধ্যাহ্নভোজ',
-    description: 'একটি স্বাস্থ্যকর এবং পুষ্টিকর খাবার',
-  },
-  {
-    id: '3',
-    image: require('../../../assets/breakfast.png'),
-    title: 'রাতের খাবার',
-    description: 'স্বাস্থ্যকর ও পরিপূর্ণ রাতের খাবার',
-  },
-];
 
 const { width, height } = Dimensions.get('window');
 
 export default function MealPage() {
   const carouselRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const navigation = useNavigation(); // Use the useNavigation hook
+  const [meals, setMeals] = useState([]); // State to store meal data
+  const navigation = useNavigation();
+
+  // Fetch meals from the backend
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        const response = await fetch(`${url}/api/meal/all/user/data`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch meals');
+        }
+        const data = await response.json();
+        setMeals(data);
+      } catch (error) {
+        console.error('Error fetching meals:', error);
+      }
+    };
+
+    fetchMeals();
+  }, []);
+
+  // Carousel data
+  const carouselData = [
+    {
+      id: '1',
+      image: require('../../../assets/meal.png'),
+      title: 'নাস্তা',
+      description: 'সকালের প্রয়োজনীয় শক্তির উৎস',
+    },
+    {
+      id: '2',
+      image: require('../../../assets/meal2.jpg'),
+      title: 'মধ্যাহ্নভোজ',
+      description: 'একটি স্বাস্থ্যকর এবং পুষ্টিকর খাবার',
+    },
+    {
+      id: '3',
+      image: require('../../../assets/breakfast.png'),
+      title: 'রাতের খাবার',
+      description: 'স্বাস্থ্যকর ও পরিপূর্ণ রাতের খাবার',
+    },
+  ];
+
+  // Auto-scroll carousel
   useEffect(() => {
     const interval = setInterval(() => {
       if (carouselRef.current) {
-        let nextIndex = (activeIndex + 1) % data.length;
+        let nextIndex = (activeIndex + 1) % carouselData.length;
         setActiveIndex(nextIndex);
         carouselRef.current.snapToItem(nextIndex);
       }
@@ -44,128 +67,117 @@ export default function MealPage() {
     return () => clearInterval(interval);
   }, [activeIndex]);
 
-  const renderItem = ({ item }) => (
+  // Render carousel item
+  const renderCarouselItem = ({ item }) => (
     <View style={styles.carouselItem}>
       <Image source={item.image} style={styles.carouselImage} resizeMode="cover" />
       <View style={styles.overlay} />
-      <Text className="text-xl text-white">{item.title}</Text>
-      <Text className="mt-2 text-3xl text-white">{item.description}</Text>
+      <Text style={styles.carouselTitle}>{item.title}</Text>
+      <Text style={styles.carouselDescription}>{item.description}</Text>
     </View>
   );
 
   return (
     <ScrollView style={styles.container}>
+      {/* Carousel */}
       <Carousel
         ref={carouselRef}
-        data={data}
-        renderItem={renderItem}
+        data={carouselData}
+        renderItem={renderCarouselItem}
         sliderWidth={width}
         itemWidth={width}
         loop={true}
         autoplay={false} // Handled manually using useEffect
         onSnapToItem={(index) => setActiveIndex(index)}
       />
-      <View>
-        <Text className="mx-auto mt-2 w-1/4 border-b-4 border-gray-500 text-center text-2xl font-bold">
-          মেনু
-        </Text>
-      </View>
-      <View className="mx-4 mt-4">
-        <View className="flex flex-row overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-          {/* Image Section */}
-          <View className="flex-none">
-            <Image
-              source={require('../../../assets/meal.png')}
-              className="h-60 w-56 rounded-l-lg"
-              resizeMode="cover"
-            />
-          </View>
 
-          {/* Content Section */}
-          <View className="flex-1 justify-between p-4">
-            {/* Title and Description */}
-            <View>
-              <Text className="text-xl font-bold text-gray-800">Fried Rice</Text>
-              <Text className="mt-1 text-sm text-gray-600">Fried Rice With Chicken</Text>
-            </View>
-
-            {/* Meal Type and Price */}
-            <View className="mt-3 flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-700">Lunch</Text>
-              <View className="flex flex-row items-center">
-                <Text className="mr-1 text-lg font-bold text-gray-800">130</Text>
-                <DollarSignIcon size={16} color="#EF4444" />
-              </View>
-            </View>
-
-            {/* Location and Quantity */}
-            <View className="mt-3 flex flex-row items-center justify-between">
-              <View className="flex flex-row items-center">
-                <Map size={16} color="#EF4444" />
-                <Text className="ml-1 text-sm text-gray-700">Akm</Text>
-              </View>
-              <View className="flex flex-row items-center">
-                <Users size={16} color="#EF4444" />
-                <Text className="ml-1 text-sm text-gray-700">Hello</Text>
-              </View>
-            </View>
-
-            {/* Buttons at the Bottom */}
-            <View className="mt-4 flex flex-row justify-center gap-x-2">
-              <Button
-                mode="text"
-                buttonColor="red" // Changes to flat button style
-                labelStyle={{ color: 'white', fontSize: 14 }} // Text color and font size
-                onPress={() => navigation.navigate('OrderScreen')}
-                className="rounded-none"
-                style={{ borderRadius: 5 }} // Remove rounded corners
-              >
-                Order
-              </Button>
-              <Button
-                mode="text"
-                buttonColor="green" // Changes to flat button style
-                labelStyle={{ color: 'white', fontSize: 14 }} // Text color and font size
-                onPress={() => navigation.navigate('OrderScreen')}
-                className="rounded-none"
-                style={{ borderRadius: 5 }} // Remove rounded corners
-              >
-                Preorder
-              </Button>
-            </View>
-          </View>
-        </View>
+      {/* Menu Title */}
+      <View style={styles.menuTitleContainer}>
+        <Text style={styles.menuTitle}>মেনু</Text>
       </View>
 
-      {/* New Card with Background [#E54981] */}
-      <View className="mx-4 mb-4 mt-4 rounded-lg" style={{ backgroundColor: '#E54981' }}>
-        <View className="p-4">
-          <Text className="text-center text-xl font-bold text-white">
-            আপনার অনুরোধকৃত আইটেম দেখতে চান?
-          </Text>
-          <View className="mt-4 flex flex-row justify-center">
-            <Button
-              mode="contained"
-              style={{ backgroundColor: 'white' }}
-              labelStyle={{ color: '#E54981', fontSize: 14 }}
-              contentStyle={{ paddingVertical: 4 }}
-              onPress={() => navigation.navigate('ReqScreen')}>
-              দেখুন
-            </Button>
+      {/* Meal List */}
+      <View style={styles.mealListContainer}>
+        {meals.map((meal) => (
+          <View key={meal.id} style={styles.mealCard}>
+            {/* Meal Image */}
+            <Image source={{ uri: meal.meal_url }} style={styles.mealImage} resizeMode="cover" />
+
+            {/* Meal Details */}
+            <View style={styles.mealDetails}>
+              <Text style={styles.mealName}>{meal.mealName}</Text>
+              <Text style={styles.mealDescription}>{meal.description}</Text>
+
+              {/* Meal Type and Price */}
+              <View style={styles.mealInfo}>
+                <Text style={styles.mealType}>{meal.mealType}</Text>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.price}>{meal.price}</Text>
+                  <DollarSign size={16} color="#1AC84B" />
+                </View>
+              </View>
+
+              {/* Location and Quantity */}
+              <View style={styles.mealInfo}>
+                <View style={styles.locationContainer}>
+                  <Map size={16} color="#FC8019" />
+                  <Text style={styles.locationText}>
+                    {meal.user.chefAssignment.restaurant.name}
+                  </Text>
+                </View>
+                <View style={styles.quantityContainer}>
+                  <Users size={16} color="#FC8019" />
+                  <Text style={styles.quantityText}>{meal.quantity}</Text>
+                </View>
+              </View>
+
+              {/* Order and Preorder Buttons */}
+              <View style={styles.buttonContainer}>
+                <Button
+                  mode="contained"
+                  style={styles.orderButton}
+                  labelStyle={styles.buttonLabel}
+                  onPress={() => navigation.navigate('OrderScreen', { id: meal.id })}
+                  disabled={meal.quantity <= 0}>
+                  Order
+                </Button>
+                <Button
+                  mode="contained-tonal"
+                  style={[styles.preorderButton, meal.quantity > 0 && styles.disabledButton]}
+                  labelStyle={styles.buttonLabel}
+                  onPress={() => navigation.navigate('PreOrderScreen', { id: meal.id })}
+                  disabled={meal.quantity > 0}>
+                  Preorder
+                </Button>
+              </View>
+            </View>
           </View>
-        </View>
+        ))}
+      </View>
+
+      {/* Requested Items Card */}
+      <View style={styles.requestCard}>
+        <Text style={styles.requestCardTitle}>আপনার অনুরোধকৃত আইটেম দেখতে চান?</Text>
+        <Button
+          mode="contained"
+          style={styles.requestButton}
+          labelStyle={styles.requestButtonLabel}
+          onPress={() => navigation.navigate('ReqScreen')}>
+          দেখুন
+        </Button>
       </View>
     </ScrollView>
   );
 }
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#f0f0f0',
   },
   carouselItem: {
     width: width,
-    height: height * 0.5, // Adjust height as needed
+    height: height * 0.4,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -177,20 +189,138 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
   },
+  disabledButton: {
+    backgroundColor: '#D3D3D3', // Gray background for disabled button
+    opacity: 0.6, // Make the disabled button look faded
+  },
   overlay: {
     width: '100%',
     height: '100%',
     position: 'absolute',
     top: 0,
     left: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adjust opacity here
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  carouselText: {
-    fontSize: 32,
+  carouselTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
     position: 'relative',
     zIndex: 1,
+  },
+  carouselDescription: {
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'center',
+    position: 'relative',
+    zIndex: 1,
+    marginTop: 8,
+  },
+  menuTitleContainer: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  menuTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    borderBottomWidth: 2,
+    borderBottomColor: '#4a4a4a',
+  },
+  mealListContainer: {
+    paddingHorizontal: 16,
+  },
+  mealCard: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    marginBottom: 16,
+    overflow: 'hidden',
+    elevation: 3,
+  },
+  mealImage: {
+    width: '100%',
+    height: 200,
+  },
+  mealDetails: {
+    padding: 16,
+  },
+  mealName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  mealDescription: {
+    fontSize: 14,
+    color: '#4a4a4a',
+    marginTop: 8,
+  },
+  mealInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  price: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 4,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationText: {
+    fontSize: 14,
+    marginLeft: 4,
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  quantityText: {
+    fontSize: 14,
+    marginLeft: 4,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  orderButton: {
+    backgroundColor: '#1AC84B',
+    flex: 1,
+    marginRight: 8,
+  },
+  preorderButton: {
+    backgroundColor: '#EF4444',
+    flex: 1,
+    marginLeft: 8,
+  },
+  buttonLabel: {
+    color: 'white',
+    fontSize: 14,
+  },
+  requestCard: {
+    backgroundColor: '#E54981',
+    borderRadius: 8,
+    margin: 16,
+    padding: 16,
+    alignItems: 'center',
+  },
+  requestCardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },
+  requestButton: {
+    backgroundColor: 'white',
+    marginTop: 16,
+  },
+  requestButtonLabel: {
+    color: '#E54981',
+    fontSize: 14,
   },
 });

@@ -3,41 +3,74 @@ import { View, Text, Image, ScrollView, StyleSheet, Dimensions } from 'react-nat
 import { Card } from 'react-native-paper';
 import { Map, Users, DollarSign } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; // For safe area handling
+import AsyncStorage from '@react-native-async-storage/async-storage'; // For token storage
+import { url } from 'components/url/page';
 
 const { width, height } = Dimensions.get('window');
 
 export default function RequestScreen() {
-  // Dummy data
-  const [meals, setMeals] = useState([
-    {
-      id: '1',
-      menu: {
-        meal_url: require('../../../assets/breakfast.png'),
-        mealName: 'Fried Rice',
-        description: 'Fried Rice With Chicken',
-        mealType: 'Lunch',
-        price: 10.99,
-        user: {
-          chefAssignment: {
-            restaurant: {
-              name: 'Restaurant Name',
-            },
+  const [meals, setMeals] = useState([]); // State to store meal data
+  const [loading, setLoading] = useState(true); // State to handle loading state
+  const [error, setError] = useState(''); // State to handle errors
+
+  // Fetch meals from the backend
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        // Get token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+        console.warn(token);
+        if (!token) {
+          throw new Error('No token found');
+        }
+
+        const response = await fetch(`${url}/api/meal/data/end`, {
+          method: 'GET',
+          headers: {
+            Authorization: token,
           },
-        },
-      },
-      quantity: 2,
-      status: false,
-      paid: true,
-    },
-    // Add more dummy data as needed
-  ]);
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch meal data');
+        }
+
+        const data = await response.json();
+        setMeals(data); // Set fetched data to state
+      } catch (error) {
+        console.error('Error fetching meal data:', error);
+        setError(error.message); // Set error message
+      } finally {
+        setLoading(false); // Set loading to false
+      }
+    };
+
+    fetchMeals();
+  }, []);
+
+  // Display loading state
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Display error state
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Error: {error}</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View>
           <Text className="mx-auto mt-2 w-1/2 border-b-4 border-gray-500 text-center text-2xl font-bold">
-            {' '}
             অনুরোধকৃত অর্ডার
           </Text>
         </View>
@@ -45,7 +78,7 @@ export default function RequestScreen() {
           <Card key={meal.id} style={styles.card}>
             <View style={styles.landscapeContainer}>
               {/* Image on the left */}
-              <Image source={meal.menu.meal_url} style={styles.landscapeImage} />
+              <Image source={{ uri: meal.menu.meal_url }} style={styles.landscapeImage} />
 
               {/* Text and details on the right */}
               <View style={styles.landscapeDetails}>
@@ -122,7 +155,7 @@ const styles = StyleSheet.create({
   },
   landscapeImage: {
     width: width * 0.4, // 40% of screen width for the image
-    height: '100%', // Fixed height for the image
+    height: 'auto', // Fixed height for the image
   },
   landscapeDetails: {
     flex: 1, // Takes the remaining space
