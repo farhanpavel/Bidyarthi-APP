@@ -12,32 +12,30 @@ import { SafeAreaView } from 'react-native-safe-area-context'; // For safe area 
 import { BusFront, Map, Users, DollarSign } from 'lucide-react-native';
 import { Card } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { url } from 'components/url/page';
 
 const { width } = Dimensions.get('window');
 
 export default function BusDashboard() {
   const navigation = useNavigation();
-  const [buses, setBuses] = useState([
-    {
-      id: '1',
-      busNum: '101',
-      startPoint: 'Dhaka',
-      endPoint: 'Chittagong',
-      routeName: 'Dhaka-Chittagong Express',
-      schedule: '14:30',
-      image: 'https://i.ibb.co/ZpbRV8sY/Screenshot-2025-03-04-at-02-33-40.png',
-    },
-    {
-      id: '2',
-      busNum: '102',
-      startPoint: 'Dhaka',
-      endPoint: 'Sylhet',
-      routeName: 'Dhaka-Sylhet Express',
-      schedule: '15:00',
-      image: 'https://i.ibb.co/ZpbRV8sY/Screenshot-2025-03-04-at-02-33-40.png',
-    },
-    // Add more dummy data as needed
-  ]);
+  const [buses, setBuses] = useState([]);
+
+  useEffect(() => {
+    const fetchBuses = async () => {
+      try {
+        const response = await fetch(`${url}/api/bus`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch buses');
+        }
+        const data = await response.json();
+        setBuses(data);
+      } catch (error) {
+        console.error('Error fetching buses:', error);
+      }
+    };
+
+    fetchBuses();
+  }, []);
 
   // Helper function to calculate time difference
   const getTimeDifferenceInMinutes = (departureTime) => {
@@ -119,7 +117,7 @@ export default function BusDashboard() {
                 <Text style={styles.departedText}>প্রস্থান করেছে</Text>
                 <TouchableOpacity
                   style={styles.trackButton}
-                  onPress={() => navigation.navigate('ScheduleScreen', { busId: bus.id })} // Navigate to TrackBus screen
+                  onPress={() => navigation.navigate('ScheduleScreen', { id: bus.id })} // Navigate to TrackBus screen
                 >
                   <Text style={styles.trackButtonText}>ট্র্যাক করুন</Text>
                 </TouchableOpacity>
@@ -131,7 +129,6 @@ export default function BusDashboard() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
