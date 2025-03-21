@@ -1,12 +1,16 @@
 # Bidyarthi-
 
-`yarn`
-`npx expo prebuild`
-`yarn android`
+```bash
+yarn
+npx expo prebuild
+yarn android
+```
 
 ## Generate Apk 
 
-`cd android`
-`./gradlew assembleRelease`
+```bash
+cd android
+./gradlew assembleRelease
+```
 
 apk is in android/build/output/apk/release/
