@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -18,6 +18,11 @@ import InfoScreen from '~/screens/ClubInfo/InfoScreen';
 import SignupScreen from '../screens/SignUp/SignUpScreen';
 import PaymentScreen from '~/screens/Payment/PaymentScreen';
 import PreOrderScreen from '~/screens/PreOrder/PreScreen';
+
+import * as Notifications from "expo-notifications";
+import messaging from "@react-native-firebase/messaging";
+import { Platform } from 'react-native';
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -86,6 +91,7 @@ const ClubStack = () => {
   );
 };
 const AppTabs = () => {
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -113,8 +119,50 @@ const AppTabs = () => {
   );
 };
 
+
+async function registerForPushNotificationsAsync() {
+  const { status } = await Notifications.requestPermissionsAsync();
+  if (status !== "granted") {
+    alert("You need to enable notifications in the app settings.");
+    return;
+  }
+  if (Platform.OS === "android")
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "default notifications",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      sound: "default"
+    });
+}
+
 // Stack Navigator for SignIn and SignUp flow
 const AppNavigator = () => {
+
+  //FCM
+  useEffect(() => {
+    registerForPushNotificationsAsync().then((r) => console.log(r));
+    messaging()
+      .getToken()
+      .then((token) => {
+        console.log(token);
+      });
+    messaging().onTokenRefresh((token) => {
+      console.log(token);
+    });
+    messaging()
+      .subscribeToTopic("test")
+      .then(() => console.log("Subscribed to topic!"));
+
+    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+      console.log("Message handled in the background!", remoteMessage);
+    });
+
+    return messaging().onMessage(async (remoteMessage) => {
+      console.log("A new FCM message arrived!", JSON.stringify(remoteMessage));
+    });
+  }, []);
+
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="SignIn">

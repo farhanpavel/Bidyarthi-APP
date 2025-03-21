@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "913210121354",
+    "project_id": "crime-nsu",
+    "storage_bucket": "crime-nsu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:913210121354:android:c70bb49d9ed1d6e719e173",
+        "android_client_info": {
+          "package_name": "ai.kf.bidyarthi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4ykphWEuVklY6vHX1ZB6NJBqtfX7kgyw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

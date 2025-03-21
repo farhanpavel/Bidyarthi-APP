@@ -10,7 +10,7 @@ import 'react-native-reanimated';
 import FCMWrapper from '~/utils/Wrapper/FCMWrapper';
 import MessageProvider from '~/utils/Context/messageContext';
 
-export default function App() {
+export default function ReactApp() {
   return (
     <PaperProvider>
       <AppNavigator />
