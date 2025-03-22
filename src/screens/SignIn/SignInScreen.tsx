@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image, View, Text, Alert } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
+import { TextInput, Button, Divider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // For storing tokens
 import '../../../global.css';
@@ -57,7 +57,7 @@ const SignInScreen = () => {
           className="h-44 w-44"
           resizeMode="contain"
         />
-        <Text className="text-center text-lg font-semibold">
+        <Text className="text-center text-lg font-medium">
           বিদ্যার্থী অ্যাপে আপনাকে স্বাগতম, দয়া করে সাইন ইন করুন।
         </Text>
       </View>
@@ -73,6 +73,8 @@ const SignInScreen = () => {
               mode="outlined"
               className="mb-4"
               activeOutlineColor="#E54981"
+              outlineColor="#E54981"
+              outlineStyle={{ borderWidth: 2 }} // Increase border width to 2 (or your desired value)
             />
           </View>
           <View>
@@ -84,6 +86,8 @@ const SignInScreen = () => {
               mode="outlined"
               className="mb-6"
               activeOutlineColor="#E54981"
+              outlineColor="#E54981"
+              outlineStyle={{ borderWidth: 2 }}
             />
           </View>
         </View>
@@ -91,28 +95,27 @@ const SignInScreen = () => {
         {/* Error Message */}
         {error ? <Text className="mb-4 text-center text-red-500">{error}</Text> : null}
 
-        <View className="mt-10 flex flex-row justify-center gap-x-3">
+        <View className="mt-10 flex flex-col">
           <View>
             <Button
               mode="contained"
               onPress={handleSignIn}
-              className="mb-4 w-[150px]"
-              style={{ backgroundColor: '#E54981' }}>
+              contentStyle={{ borderRadius: 0 }}
+              style={{ backgroundColor: '#E54981', borderRadius: 4 }}>
               সাইন ইন
             </Button>
           </View>
-          <View>
-            <Button
-              mode="contained"
-              onPress={() => navigation.navigate('SignUp')}
-              className="mb-4 w-[150px]"
-              textColor="#E54981"
-              style={{
-                borderColor: '#E54981',
-                backgroundColor: 'white',
-                borderWidth: 2,
-              }}>
-              সাইন আপ
+
+          {/* Divider */}
+          <View className="mx-auto mt-7 w-[87%]">
+            <Divider style={{ backgroundColor: '#E54981', height: 2 }} />
+          </View>
+
+          {/* Register Prompt */}
+          <View className="mt-2 flex-row items-center justify-center">
+            <Text className="text-gray-600">নতুন অ্যাকাউন্ট তৈরি করতে চান?</Text>
+            <Button mode="text" onPress={() => navigation.navigate('SignUp')} textColor="#E54981">
+              রেজিস্টার
             </Button>
           </View>
         </View>

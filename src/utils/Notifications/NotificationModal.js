@@ -10,6 +10,7 @@ import {
 import Modal from 'react-native-modal';
 import { useNotificationModalStore } from './store';
 import { url } from 'components/url/page';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function NotificationModal() {
   const { isNotificationModalOpen, closeNotificationModal } = useNotificationModalStore();
@@ -25,7 +26,17 @@ export default function NotificationModal() {
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${url}//api/emergency`);
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        console.log('No token found');
+        return;
+      }
+
+      const response = await fetch(`${url}/api/emergency`, {
+        headers: {
+          Authorization: token,
+        },
+      });
       const json = await response.json();
       if (response.ok) {
         setNotifications(json);
@@ -99,6 +110,7 @@ const styles = StyleSheet.create({
     width: '90%',
     padding: 20,
     borderRadius: 10,
+    height: '70%',
   },
   header: {
     flexDirection: 'row',

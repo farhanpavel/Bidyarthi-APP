@@ -38,19 +38,19 @@ export default function MealPage() {
       id: '1',
       image: require('../../../assets/meal.png'),
       title: 'নাস্তা',
-      description: 'সকালের প্রয়োজনীয় শক্তির উৎস',
+      description: 'দিনের শুরুতে পুষ্টিকর নাস্তা আপনাকে সারাদিন কর্মক্ষম রাখবে।',
     },
     {
       id: '2',
       image: require('../../../assets/meal2.jpg'),
       title: 'মধ্যাহ্নভোজ',
-      description: 'একটি স্বাস্থ্যকর এবং পুষ্টিকর খাবার',
+      description: 'সঠিক পুষ্টি ও শক্তির জন্য স্বাস্থ্যকর মধ্যাহ্নভোজ উপভোগ করুন।',
     },
     {
       id: '3',
       image: require('../../../assets/breakfast.png'),
       title: 'রাতের খাবার',
-      description: 'স্বাস্থ্যকর ও পরিপূর্ণ রাতের খাবার',
+      description: 'সুস্থ ও প্রশান্ত ঘুমের জন্য হালকা ও পুষ্টিকর রাতের খাবার খান।',
     },
   ];
 
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   carouselItem: {
     width: width,
-    height: height * 0.4,
+    height: height * 0.5,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -216,6 +216,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 1,
     marginTop: 8,
+    width: '80%',
   },
   menuTitleContainer: {
     alignItems: 'center',
@@ -292,11 +293,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#1AC84B',
     flex: 1,
     marginRight: 8,
+    borderRadius: 4,
   },
   preorderButton: {
     backgroundColor: '#EF4444',
     flex: 1,
     marginLeft: 8,
+    borderRadius: 4,
   },
   buttonLabel: {
     color: 'white',
@@ -318,6 +321,7 @@ const styles = StyleSheet.create({
   requestButton: {
     backgroundColor: 'white',
     marginTop: 16,
+    borderRadius: 4,
   },
   requestButtonLabel: {
     color: '#E54981',

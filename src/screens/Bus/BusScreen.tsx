@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; // For safe area handling
-import { BusFront, Map, Users, DollarSign } from 'lucide-react-native';
+import { BusFront, Map, Users, DollarSign, Bus } from 'lucide-react-native';
 import { Card } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { url } from 'components/url/page';
@@ -71,12 +71,17 @@ export default function BusDashboard() {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         {/* Header */}
+        <View style={styles.header}>
+          <Bus size={24} color="#E54981" />
+          <Text style={styles.headerText}>বাসের সময়সূচি</Text>
+        </View>
+        <Text style={styles.subHeader}>বাস রুটের বিস্তারিত</Text>
 
         {/* Buses Departing Soon */}
         <Text style={styles.sectionTitle}>৩০ মিনিট পর প্রস্থান হবে</Text>
         {busesDepartingSoon.map((bus) => (
           <Card key={bus.id} style={styles.card}>
-            <Image source={{ uri: bus.image }} style={styles.cardImage} />
+            <Image source={{ uri: bus.bus_url }} style={styles.cardImage} />
             <View style={styles.cardContent}>
               <Text style={styles.routeName}>
                 {bus.startPoint} → {bus.endPoint}
@@ -91,7 +96,7 @@ export default function BusDashboard() {
         <Text style={styles.sectionTitle}>আরও বাস</Text>
         {moreBuses.map((bus) => (
           <Card key={bus.id} style={styles.card}>
-            <Image source={{ uri: bus.image }} style={styles.cardImage} />
+            <Image source={{ uri: bus.bus_url }} style={styles.cardImage} />
             <View style={styles.cardContent}>
               <Text style={styles.routeName}>
                 {bus.startPoint} → {bus.endPoint}
@@ -106,7 +111,7 @@ export default function BusDashboard() {
         <Text style={styles.sectionTitle}>প্রস্থান করা বাসসমূহ</Text>
         {busesDeparted.map((bus) => (
           <Card key={bus.id} style={styles.card}>
-            <Image source={{ uri: bus.image }} style={styles.cardImage} />
+            <Image source={{ uri: bus.bus_url }} style={styles.cardImage} />
             <View style={styles.cardContent}>
               <Text style={styles.routeName}>
                 {bus.startPoint} → {bus.endPoint}
@@ -145,12 +150,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 8,
     textAlign: 'center',
+    color: '#E54981',
   },
   subHeader: {
     fontSize: 14,
     color: '#4a4a4a',
     borderBottomWidth: 2,
-    borderBottomColor: '#000',
+    borderBottomColor: '#E54981',
     paddingBottom: 8,
     marginBottom: 16,
   },
@@ -159,8 +165,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 16,
-    borderBottomWidth: 2,
-    borderBottomColor: '#000',
+    color: '#E54981',
     paddingBottom: 8,
   },
   card: {
@@ -208,7 +213,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   trackButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#E54981',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

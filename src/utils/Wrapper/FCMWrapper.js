@@ -1,4 +1,3 @@
-// components/FCMWrapper.js
 import React, { useEffect, useContext, useState } from 'react';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -81,7 +80,7 @@ const FCMWrapper = ({ children }) => {
   // Log the FCM Token and Subscribe to Topics
   useEffect(() => {
     if (fcmToken) {
-      console.log('FCM Token:', fcmToken);
+      console.log('pavel FCM Token:', fcmToken);
       subscribeTokenToTopic(fcmToken, 'all');
       subscribeTokenToTopic(fcmToken, 'emergency');
       subscribeTokenToTopic(fcmToken, 'announcement');
@@ -135,7 +134,7 @@ const FCMWrapper = ({ children }) => {
   return (
     <>
       <Toast />
-      <NotificationModal isOpen={isNotificationModalOpen} onClose={closeNotificationModal} />
+      {/* <NotificationModal isOpen={isNotificationModalOpen} onClose={closeNotificationModal} /> */}
       {isEmergencyPopupVisible && (
         <EmergencyPopup
           message={emergencyData.message}
@@ -144,7 +143,7 @@ const FCMWrapper = ({ children }) => {
           onClose={() => setIsEmergencyPopupVisible(false)}
         />
       )}
-      {children}
+      {children} {/* Render the children (NavigationContainer) */}
     </>
   );
 };

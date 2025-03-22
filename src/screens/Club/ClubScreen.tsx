@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; // For safe area handling
-import { BookOpenText, Trophy } from 'lucide-react-native'; // Updated icon
+import { BookOpenText, Trophy, University } from 'lucide-react-native'; // Updated icon
 import { useNavigation } from '@react-navigation/native';
 import { url } from 'components/url/page';
 
@@ -73,7 +73,7 @@ export default function ClubScreen() {
       <ScrollView>
         {/* Header */}
         <View style={styles.header}>
-          <BookOpenText size={24} color="#E54981" />
+          <University size={24} color="#E54981" />
           <Text style={styles.headerText}>ক্লাব</Text>
         </View>
         <Text style={styles.subHeader}>সৃজনশীল ও সহশিক্ষা কার্যক্রমের তথ্য</Text>
@@ -125,6 +125,9 @@ const styles = StyleSheet.create({
   subHeader: {
     fontSize: 14,
     color: '#4a4a4a',
+    borderBottomWidth: 2,
+    borderBottomColor: '#E54981',
+    paddingBottom: 8,
     marginBottom: 16,
   },
   grid: {

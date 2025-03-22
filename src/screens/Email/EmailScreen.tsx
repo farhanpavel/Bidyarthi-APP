@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Text, TextInput, TouchableOpacity } from 'react-native';
-import { Appbar, Card, Avatar, IconButton } from 'react-native-paper';
-import { Mail, Send, X } from 'lucide-react-native'; // Assuming you have lucide-react-native installed
-import AsyncStorage from '@react-native-async-storage/async-storage'; // For storing token
+import { View, ScrollView, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Card, IconButton } from 'react-native-paper';
+import { Mail, X } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { url } from 'components/url/page';
 
 export default function EmailScreen() {
@@ -15,12 +15,10 @@ export default function EmailScreen() {
   const [inbox, setInbox] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch messages on component mount
   useEffect(() => {
     fetchMessages();
   }, []);
 
-  // Function to fetch messages
   const fetchMessages = async () => {
     const token = await AsyncStorage.getItem('token');
     try {
@@ -32,18 +30,14 @@ export default function EmailScreen() {
         },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch messages');
-      }
-
+      if (!response.ok) throw new Error('Failed to fetch messages');
       const data = await response.json();
-      setInbox(data); // Update inbox state with fetched messages
+      setInbox(data);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
     setLoading(true);
     const token = await AsyncStorage.getItem('token');
@@ -68,7 +62,7 @@ export default function EmailScreen() {
         alert('Email sent successfully!');
         setShowCompose(false);
         setEmailData({ to: '', subject: '', body: '' });
-        await fetchMessages(); // Refetch messages after sending
+        await fetchMessages();
       } else {
         alert(`Failed to send email: ${result.message || 'Unknown error'}`);
       }
@@ -81,103 +75,223 @@ export default function EmailScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <ScrollView style={styles.container}>
       {/* Header */}
-      <Appbar.Header className="bg-white shadow">
-        <Appbar.Content
-          title="বার্তা আদান প্রদান"
-          subtitle="আপনার পাঠানো এবং প্রাপ্ত বার্তাগুলো এখানে পাবেন"
-        />
-      </Appbar.Header>
+      <View style={styles.header}>
+        <Mail size={24} color="#E54981" />
+        <Text style={styles.headerText}>বার্তা আদান প্রদান</Text>
+      </View>
+      <Text style={styles.subHeader}>আপনার পাঠানো এবং প্রাপ্ত বার্তাগুলো এখানে পাবেন</Text>
 
       {/* Main Content */}
-      <ScrollView className="flex-1 p-4">
+      <ScrollView style={styles.scrollContainer}>
         {/* Compose Button */}
-        <TouchableOpacity
-          onPress={() => setShowCompose(true)}
-          className="mb-4 flex-row items-center justify-center rounded-lg bg-blue-600 p-3">
-          <Mail className="mr-2 text-white" />
-          <Text className="font-bold text-white">লিখুন</Text>
+        <TouchableOpacity onPress={() => setShowCompose(true)} style={styles.composeButton}>
+          <Mail size={20} color="#fff" />
+          <Text style={styles.composeText}>লিখুন</Text>
         </TouchableOpacity>
 
         {/* Compose Email Form */}
         {showCompose && (
-          <Card className="mb-4">
+          <Card style={styles.card}>
             <Card.Title
               title="ইমেইল লিখুন"
-              right={(props) => <IconButton icon="close" onPress={() => setShowCompose(false)} />}
+              titleStyle={styles.cardTitle}
+              right={(props) => (
+                <IconButton
+                  icon={() => <X size={24} color="#000" />}
+                  onPress={() => setShowCompose(false)}
+                />
+              )}
             />
             <Card.Content>
               <TextInput
                 placeholder="ব্যক্তির ইমেইল"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#4a4a4a"
                 value={emailData.to}
                 onChangeText={(text) => setEmailData({ ...emailData, to: text })}
-                className="mb-4 rounded-lg border border-gray-300 p-2"
-                style={{ fontSize: 16 }}
+                style={styles.input}
               />
               <TextInput
                 placeholder="বিষয়"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#4a4a4a"
                 value={emailData.subject}
                 onChangeText={(text) => setEmailData({ ...emailData, subject: text })}
-                className="mb-4 rounded-lg border border-gray-300 p-2"
-                style={{ fontSize: 16 }}
+                style={styles.input}
               />
               <TextInput
                 placeholder="বার্তা"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#4a4a4a"
                 value={emailData.body}
                 onChangeText={(text) => setEmailData({ ...emailData, body: text })}
                 multiline
                 numberOfLines={6}
-                className="mb-4 rounded-lg border border-gray-300 p-2"
-                style={{ fontSize: 16, textAlignVertical: 'top', minHeight: 120 }}
+                style={[styles.input, styles.bodyInput]}
               />
             </Card.Content>
-            <Card.Actions className="justify-end">
-              <TouchableOpacity
-                onPress={() => setShowCompose(false)}
-                className="mr-2 rounded-lg bg-gray-100 px-4 py-2">
-                <Text>বাদ দিন</Text>
+            <Card.Actions style={styles.cardActions}>
+              <TouchableOpacity onPress={() => setShowCompose(false)} style={styles.cancelButton}>
+                <Text style={styles.cancelText}>বাদ দিন</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSubmit}
-                disabled={loading}
-                className="rounded-lg bg-blue-600 px-4 py-2">
-                {loading ? (
-                  <Text className="text-white">পাঠানো হচ্ছে...</Text>
-                ) : (
-                  <Text className="text-white">পাঠান</Text>
-                )}
+              <TouchableOpacity onPress={handleSubmit} disabled={loading} style={styles.sendButton}>
+                <Text style={styles.sendText}>{loading ? 'পাঠানো হচ্ছে...' : 'পাঠান'}</Text>
               </TouchableOpacity>
             </Card.Actions>
           </Card>
         )}
 
         {/* Inbox Content */}
-        <View className="mt-4">
-          <Text className="mb-4 text-xl font-bold">ইনবক্স</Text>
+        <View style={styles.inboxContainer}>
+          <Text style={styles.inboxTitle}>ইনবক্স</Text>
           {inbox.length === 0 ? (
-            <Text className="text-gray-500">কোনো বার্তা নেই</Text>
+            <Text style={styles.emptyText}>কোনো বার্তা নেই</Text>
           ) : (
             inbox.map((message) => (
-              <Card key={message.id} className="mb-4">
+              <Card key={message.id} style={styles.inboxCard}>
                 <Card.Title
                   title={message.subject}
                   subtitle={`প্রেরক: ${message.from.name}`}
-                  left={(props) => (
-                    <Avatar.Text size={40} label={message.from.name[0]} className="bg-blue-600" />
-                  )}
+                  titleStyle={styles.inboxTitleStyle}
+                  subtitleStyle={styles.inboxSubtitleStyle}
                 />
                 <Card.Content>
-                  <Text>{message.message}</Text>
+                  <Text style={styles.inboxMessage}>{message.message}</Text>
                 </Card.Content>
               </Card>
             ))
           )}
         </View>
       </ScrollView>
-    </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0f0f0', // Light gray background from ClubScreen
+    padding: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#E54981', // Black text from ClubScreen
+    marginLeft: 8,
+  },
+  subHeader: {
+    fontSize: 14,
+    color: '#4a4a4a', // Dark gray from ClubScreen
+    borderBottomWidth: 2,
+    borderBottomColor: '#E54981',
+    // Black border from ClubScreen
+    paddingBottom: 8,
+    marginBottom: 16,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  composeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E54981', // Pink from ClubScreen
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    elevation: 2,
+  },
+  composeText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff', // White text from ClubScreen button
+    marginLeft: 8,
+  },
+  card: {
+    backgroundColor: '#fff', // White card from ClubScreen
+    borderRadius: 8,
+    marginBottom: 16,
+    elevation: 2, // Subtle shadow from ClubScreen
+  },
+  cardTitle: {
+    color: '#000', // Black text from ClubScreen
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  input: {
+    backgroundColor: '#fff', // White input background
+    borderWidth: 2,
+    borderColor: '#E54981', // Pink border for consistency
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#000', // Black text
+  },
+  bodyInput: {
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+  cardActions: {
+    justifyContent: 'flex-end',
+    padding: 8,
+  },
+  cancelButton: {
+    backgroundColor: '#f0f0f0', // Light gray for cancel
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  cancelText: {
+    color: '#000', // Black text
+    fontSize: 14,
+  },
+  sendButton: {
+    backgroundColor: '#E54981', // Pink from ClubScreen
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  sendText: {
+    color: '#fff', // White text from ClubScreen button
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  inboxContainer: {
+    marginTop: 16,
+  },
+  inboxTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000', // Black text
+    marginBottom: 16,
+  },
+  emptyText: {
+    color: '#4a4a4a', // Dark gray from ClubScreen
+    fontSize: 16,
+  },
+  inboxCard: {
+    backgroundColor: '#fff', // White card from ClubScreen
+    borderRadius: 8,
+    marginBottom: 16,
+    elevation: 2,
+  },
+  inboxTitleStyle: {
+    color: '#000', // Black text
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  inboxSubtitleStyle: {
+    color: '#E54981', // Pink for subtitle like ClubScreen description
+    fontSize: 14,
+  },
+  inboxMessage: {
+    color: '#000', // Black text
+    fontSize: 14,
+  },
+});

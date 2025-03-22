@@ -69,7 +69,7 @@ const SignupScreen = () => {
           className="h-44 w-44"
           resizeMode="contain"
         />
-        <Text className="text-center text-lg font-semibold">
+        <Text className="text-center text-lg font-medium">
           বিদ্যার্থী অ্যাপে আপনাকে স্বাগতম, দয়া করে সাইন আপ করুন।
         </Text>
       </View>
@@ -85,6 +85,8 @@ const SignupScreen = () => {
               mode="outlined"
               className="mb-4"
               activeOutlineColor="#E54981"
+              outlineColor="#E54981"
+              outlineStyle={{ borderWidth: 2 }}
             />
           </View>
           <View>
@@ -95,6 +97,8 @@ const SignupScreen = () => {
               mode="outlined"
               className="mb-4"
               activeOutlineColor="#E54981"
+              outlineColor="#E54981"
+              outlineStyle={{ borderWidth: 2 }}
             />
           </View>
           <View>
@@ -106,6 +110,8 @@ const SignupScreen = () => {
               mode="outlined"
               className="mb-4"
               activeOutlineColor="#E54981"
+              outlineColor="#E54981"
+              outlineStyle={{ borderWidth: 2 }}
             />
           </View>
           <View>
@@ -117,6 +123,8 @@ const SignupScreen = () => {
               mode="outlined"
               className="mb-6"
               activeOutlineColor="#E54981"
+              outlineColor="#E54981"
+              outlineStyle={{ borderWidth: 2 }}
             />
           </View>
         </View>
@@ -125,13 +133,13 @@ const SignupScreen = () => {
         {error ? <Text className="mb-4 text-center text-red-500">{error}</Text> : null}
 
         {/* Create Button */}
-        <View className="mt-10 flex flex-row justify-center gap-x-3">
+        <View className="mt-10 flex flex-col justify-center gap-x-3">
           <View>
             <Button
               mode="contained"
               onPress={handleSignUp}
-              className="mb-4 w-[150px]"
-              style={{ backgroundColor: '#E54981' }}>
+              className="mb-4"
+              style={{ backgroundColor: '#E54981', borderRadius: 4 }}>
               তৈরি করুন
             </Button>
           </View>

@@ -8,7 +8,6 @@ import { Button } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import FCMWrapper from '~/utils/Wrapper/FCMWrapper';
-import MessageProvider from '~/utils/Context/messageContext';
 
 export default function ReactApp() {
   return (
